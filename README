@@ -1,0 +1,21 @@
+My StumpWM config. Includes following features:
+
+;; Summary:
+;; 1) You can build your own program launcher redefining *key-bindings*
+;; C-t C-r h is a help on the program launcher
+;; C-t C-r m is an interactive launcher menu
+;;
+;; 2) You can close a window with C-t d and close all windows with C-t ]
+;; Also there is "safe quit" command accessible with C-t q
+;; It makes stumpwm to quit only if there are no windows left
+
+;; 3) You can set a wallpaper from wallpaper collection via interactive menu
+;; with C-t .
+
+;; 4) Path to current wallpaper will be stored in preferences file
+;; and the wallpaper will restored in next session
+
+;; WARNING: This configuration file uses *quit-hook*, which is absent in
+;; stumpwm distribution(s) and is added to stumpwm by myself.
+;; If you want preferences to be stored as stumpwm quits
+;; add this patch to stumpwm
