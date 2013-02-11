@@ -114,7 +114,7 @@ index 845c745..65d4ba7 100644
 	(destructuring-bind (key . prog-name) binding
 	  (let ((symbol (intern (string-upcase prog-name)))
 		(caller #'(lambda ()
-			    (run-commands (concatenate 'string "exec " prog-name)))))
+			    (run-shell-command prog-name))))
 	    (setf (symbol-function symbol) caller
 		  (gethash symbol stumpwm::*command-hash*)
 		  (stumpwm::make-command :name symbol :class t)))
@@ -166,8 +166,8 @@ index 845c745..65d4ba7 100644
 
 (defun set-wallpaper (name)
   "Sets wallpaper with help of xli"
-  (run-commands
-   (format nil "exec xli -onroot -fullscreen ~A" name))
+  (run-shell-command
+   (format nil "xli -onroot -fullscreen ~A" name))
   (set-pref :wallpaper name))
 
 (defcommand choose-wallpaper (&optional (dir *wallpapers-dir*)) ()
