@@ -59,6 +59,7 @@ index 845c745..65d4ba7 100644
 (if *initializing*
     (asdf:load-system :cl-fad))
 
+(defparameter *shell* "xterm -e ")
 (defparameter *wallpapers-dir* "/home/vasily/.e16/backgrounds"
   "It contains a path to all my wallpapers")
 ;; File with preferences
@@ -146,6 +147,10 @@ index 845c745..65d4ba7 100644
 (define-key *launcher-bindings* (kbd "m") "launcher-menu")
 (define-key *root-map* (kbd "C-r") *launcher-bindings*)
 (define-key *root-map* (kbd "d") "delete-window")
+
+(defcommand exec-in-shell (command) ((:string "Command to run in shell: "))
+  (run-shell-command (concatenate 'string *shell* command)))
+(define-key *root-map* (kbd "x") "exec-in-shell")
 
 ;; Safe quit
 
