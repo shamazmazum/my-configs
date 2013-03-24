@@ -59,8 +59,8 @@ index 845c745..65d4ba7 100644
 (if *initializing*
     (asdf:load-system :cl-fad))
 
-(defparameter *shell* "xterm -e ")
-(defparameter *wallpapers-dir* "/home/vasily/.e16/backgrounds"
+(defparameter *shell* "uxterm ")
+(defparameter *wallpapers-dir* "/home/vasily/wallpapers"
   "It contains a path to all my wallpapers")
 ;; File with preferences
 (defparameter *preferences-fn* "~/.stumpwm.pref"
@@ -106,6 +106,7 @@ index 845c745..65d4ba7 100644
 (defvar *key-bindings* '(("f" . "firefox")
 			 ("t" . "uxterm")
 			 ("e" . "evince")
+			 ("v" . "VirtualBox")
 			 ("g" . "gimp"))
   "Bindings for launcher")
 
@@ -205,3 +206,9 @@ index 845c745..65d4ba7 100644
       (set-wallpaper (namestring (second selection))))))
 
 (define-key *root-map* (kbd ".") "choose-wallpaper")
+
+(load-module "mpd")
+(setq *screen-mode-line-format* (format nil "%w~%%m")
+      *mode-line-timeout* 1)
+(mpd-connect)
+(toggle-mode-line (current-screen) (current-head))
