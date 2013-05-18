@@ -1,4 +1,5 @@
-My StumpWM config. Includes following features:
+Aleksey Khudyakov's emacs config and my StumpWM config.
+The latest one includes following features:
 
 ;; Summary:
 ;; 1) You can build your own program launcher redefining *key-bindings*
