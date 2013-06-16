@@ -153,6 +153,21 @@ index 845c745..65d4ba7 100644
   (run-shell-command (concatenate 'string *shell* command)))
 (define-key *root-map* (kbd "x") "exec-in-shell")
 
+;; Screen settings
+(defvar *screen-bindings* (make-sparse-keymap))
+
+(defcommand my-snext () ()
+  (run-commands "snext")
+  (message "Current Screen"))
+
+(defcommand my-prev () ()
+  (run-commands "sprev")
+  (message "Current Screen"))
+
+(define-key *screen-bindings* (kbd "n") "my-snext")
+(define-key *screen-bindings* (kbd "p") "my-sprev")
+(define-key *root-map* (kbd "C-s") *screen-bindings*)
+
 ;; Safe quit
 
 (defcommand safe-quit () ()
