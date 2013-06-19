@@ -227,3 +227,6 @@ index 845c745..65d4ba7 100644
       *mode-line-timeout* 1)
 (mpd-connect)
 (toggle-mode-line (current-screen) (current-head))
+
+;; Focus follows mouse click
+(setq *mouse-focus-policy* :click)
