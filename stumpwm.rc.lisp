@@ -87,15 +87,17 @@ index 845c745..65d4ba7 100644
 
 (defun set-pref (key value)
   "Stores key-value pair in preferences"
-  (let ((old-pref (assoc key *preferences*)))
+  (let ((old-pref (assoc key *preferences* :test #'equal)))
     (if old-pref
 	(setf (cdr old-pref) value)
       (push (cons key value) *preferences*))))
 
 ;; Restore previous wallpaper if any
 (add-hook *start-hook* #'(lambda ()
-			   (let ((prev-wp (assoc :wallpaper *preferences*)))
-			     (if prev-wp (set-wallpaper (cdr prev-wp))))))
+                           (dolist (screen *screen-list*)
+                             (let* ((screen-id (stumpwm::screen-id screen))
+                                    (prev-wp (assoc (cons :wallpaper screen-id) *preferences* :test #'equal)))
+                               (if prev-wp (set-wallpaper (cdr prev-wp) screen))))))
 
 ;; Load preferences at start and store at quit
 (add-hook *start-hook* #'load-pref)
@@ -103,11 +105,12 @@ index 845c745..65d4ba7 100644
 
 ;; Program launcher
 (defvar *launcher-bindings* (make-sparse-keymap))
-(defvar *key-bindings* '(("f" . "firefox")
-			 ("t" . "uxterm")
-			 ("e" . "evince")
-			 ("v" . "VirtualBox")
-			 ("g" . "gimp"))
+(defparameter *key-bindings* '(("m" . "midori")
+                               ("f" . "firefox")
+                               ("t" . "uxterm")
+                               ("e" . "evince")
+                               ("v" . "VirtualBox")
+                               ("g" . "gimp"))
   "Bindings for launcher")
 
 (defun make-bindings (&optional (bindings *key-bindings*))
@@ -145,7 +148,7 @@ index 845c745..65d4ba7 100644
     (if (null selection) (throw 'stumpwm::error "Abort."))
     (run-commands (second selection))))
 
-(define-key *launcher-bindings* (kbd "m") "launcher-menu")
+(define-key *launcher-bindings* (kbd "M") "launcher-menu")
 (define-key *root-map* (kbd "C-r") *launcher-bindings*)
 (define-key *root-map* (kbd "d") "delete-window")
 
@@ -171,61 +174,53 @@ index 845c745..65d4ba7 100644
 ;; Safe quit
 
 (defcommand safe-quit () ()
-  (loop for group in (stumpwm::screen-groups (current-screen)) do
-	(if (/= 0 (length (stumpwm::group-windows group))) (throw 'stumpwm::error "You must close all windows first")))
+  (dolist (screen *screen-list*)
+    (dolist (group (stumpwm::screen-groups screen))
+      (if (/= 0 (length (stumpwm::group-windows group))) (throw 'stumpwm::error "You must close all windows first"))))
   (run-commands "quit"))
 (define-key *root-map* (kbd "q") "safe-quit")
 
 ;; Close all windows (so you can quit safely)
 (defcommand delete-all () ()
-  (loop for group in (stumpwm::screen-groups (current-screen)) do
-	(loop for window in (stumpwm::group-windows group) do
-	      (stumpwm::delete-window window))))
+  (dolist (screen *screen-list*)
+    (dolist (group (stumpwm::screen-groups screen))
+      (dolist (window (stumpwm::group-windows group))
+        (stumpwm::delete-window window)))))
 (define-key *root-map* (kbd "]") "delete-all")
 
 ;; Wallpaper (why not?)
 
-(defun set-wallpaper (name)
-  "Sets wallpaper with help of xli"
-  (run-shell-command
-   (format nil "xli -onroot -fullscreen ~A" name))
-  (set-pref :wallpaper name))
+(load-module "image-ppm")
+
+(defun set-wallpaper (name screen)
+  "Sets a wallpaper on the current-screen"
+  (load-wallpaper screen name)
+  (set-pref (cons :wallpaper (stumpwm::screen-id screen)) name))
 
 (defcommand choose-wallpaper (&optional (dir *wallpapers-dir*)) ()
-  (labels ((filter (sequence predicate &optional res)
-		   (if (null sequence) res
-		     (let ((head (car sequence)))
-		       (filter (cdr sequence)
-			       predicate
-			       (if (funcall predicate head)
-				   (cons head res)
-				 res))))))
-    
-    (let* ((files (cl-fad:list-directory dir))
-	   (pictures (filter files
-			     #'(lambda (file)
-				 (let ((file-type (pathname-type file)))
-				   (or (string= "jpg" file-type)
-				       (string= "png" file-type)
-				       (string= "bmp" file-type))))))
-	   
-	   (menu (mapcar #'(lambda (file)
+  (let* ((files (cl-fad:list-directory dir))
+         (pictures (remove-if-not
+                    (lambda (file)
+                      (find (pathname-type file)
+                            (supported-wallpaper-types)
+                            :test #'string=))
+                    files))
+         (menu (mapcar #'(lambda (file)
 			     (list (file-namestring file) file)) pictures))
-
-	   (selection (stumpwm::select-from-menu
-		       (current-screen)
-		       menu
-		       "Select a wallpaper")))
+         (selection (stumpwm::select-from-menu
+                     (current-screen)
+                     menu
+                     "Select a wallpaper")))
 
       (if (null selection) (throw 'stumpwm::error "Abort."))
-      (set-wallpaper (namestring (second selection))))))
+      (set-wallpaper (namestring (second selection)) (current-screen))))
 
 (define-key *root-map* (kbd ".") "choose-wallpaper")
 
-(load-module "mpd")
-(setq *screen-mode-line-format* (format nil "%w~%%m")
+;; (load-module "mpd")
+(setq *screen-mode-line-format* (format nil "%w")
       *mode-line-timeout* 1)
-(mpd-connect)
+;; (mpd-connect)
 (toggle-mode-line (current-screen) (current-head))
 
 ;; Focus follows mouse click
